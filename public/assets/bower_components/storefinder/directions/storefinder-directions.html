@@ -1,0 +1,171 @@
+<!-- Polymer Components -->
+<link rel="import" href="../../polymer/polymer.html">
+
+<!-- Start of the Module -->
+<dom-module id="storefinder-directions">
+    <style type="text/css">
+        .direction-container{
+            height: 100%;
+            margin-top:10px;
+        }
+
+        .direction-item{
+            /*border-bottom:1px solid #dadada;*/
+            display:flex;
+            padding:10px 15px 15px 20px;
+            font-weight:300;
+        }
+
+        .direction-travel-mode{
+            flex-basis:15%;
+            margin-right:5px;
+        }
+
+        .direction-travel-mode iron-icon{
+            width:20px;
+        }
+
+        .direction-way-points{
+            flex-basis:85%;
+            padding-top:5px;
+        }
+
+        .direction-way-points div:nth-child(1){
+            font-size:13px;
+            margin-bottom:5px;
+            font-weight: normal;
+        }
+
+         .direction-way-points div:nth-child(2){
+            /*margin-bottom:10px;*/
+            font-size:12px
+         }
+
+         .direction-way-points div:nth-child(3) a{
+            text-decoration:none;
+            font-size:12px
+         }
+
+         .direction-details{
+            padding:15px;
+            font-size:20px;
+            font-family:Roboto, Arial, sans-serif;
+            border-bottom:1px solid #dadada;
+            /*margin-bottom:10px;*/
+            display:flex;
+            flex-direction:row;
+            /*cursor: pointer;*/
+            border-left:10px solid #fff;
+         }
+
+         .active-direction{
+            border-left:10px solid #B2DFDB !important;
+         }
+
+         .direction-details div:nth-child(2){
+            flex-basis:85%;
+         }
+
+         .direction-details .red{
+            color: #d2401d
+         }
+
+         .direction-details .gray{
+            color: rgba(0, 0, 0, 0.54);
+            font-weight:300;
+         }
+
+         .direction-details .small-text-details{
+            font-size: 13px;
+            font-weight: 300;
+            color: rgba(0, 0, 0, 0.54);
+            margin-top: 3px;
+         }
+
+          .direction-details .lnk a{
+            text-decoration: none;
+            font-size:13px;
+            font-weight:300;
+          }
+    </style>
+
+    <template>
+        <div id = "storefinder-directions">
+            <template is="dom-repeat" items="{{routes}}" as="route">
+                <div class = "direction-details">
+                    <div class = "direction-travel-mode">
+                        <iron-icon icon='maps:directions-car'></iron-icon>
+                    </div>
+                    <div>
+                        <span class="red">{{route.legs.0.duration.text}}</span> <span class = "gray">({{route.legs.0.distance.text}})</span>
+                        <div class = "small-text-details">
+                            via <span>{{route.summary}}</span>
+                        </div>
+                        <div class = "lnk"><a href="javascript:void(0)" on-tap="_viewDirection">View Directions</a></div>
+                    </div>
+                </div>
+            </template>
+            <div class = "direction-container">
+                 <div class = "direction-item" style="padding:5px 15px 0px 15px;    font-weight: 500;font-size: 14px;color: #00897B;">{{directions.start_address}}</div>
+                <template is="dom-repeat" items="{{directions.steps}}" as="directions">
+                    <div class = "direction-item" style = "padding-left:40px;">
+                        <div class = "direction-way-points">
+                            <div inner-h-t-m-l="{{directions.instructions}}"></div>
+                            <div><span>{{directions.distance.text}}</span> - {{directions.duration.text}}</div>
+                        </div>  
+                    </div>
+                </template>
+                <div class = "direction-item" style = "padding:0px 15px 15px 15px;font-weight: 500;font-size: 14px;color: #00897B;">{{directions.end_address}}</div>
+            </div>
+        </div>
+    </template>
+</dom-module>
+<script>
+    Polymer({
+        is               : 'storefinder-directions',
+        behaviors  : [  Polymer.IronResizableBehavior ],
+        properties : {
+            routes: { 
+                type: Array,  
+                observer: "_routesChanged"
+            },
+            current_routes: {
+                type: Object
+            },
+            directions: {type: Array}
+        }, 
+
+        _routesChanged: function(){
+            var self = this;
+            this.routes.forEach(function(route, idx){
+                route['index'] = idx;
+            });
+
+            this.current_routes = this.routes[0]; 
+            this.directions         = this.current_routes.legs[0];
+
+            window.setTimeout(function(){
+                self._resetActiveDirection();
+                var activeDirection = document.querySelector(".direction-details");
+                if(activeDirection)
+                    activeDirection.classList.add('active-direction');
+            }, 400)
+        }, 
+
+        _viewDirection: function(e){
+            this._resetActiveDirection();
+            e.srcElement.parentNode.parentNode.parentNode.classList.add('active-direction')
+            this.current_routes = e.model.route;
+            this.directions         = this.current_routes.legs[0]; 
+            activeDirection        = '';
+            this.fire('set-route-index', {'index' : e.model.route.index});
+        }, 
+
+        _resetActiveDirection: function(){
+            var activeDirection = document.querySelector(".active-direction");
+           
+           if(activeDirection)
+                activeDirection.classList.remove('active-direction');
+        }
+    });
+</script>
